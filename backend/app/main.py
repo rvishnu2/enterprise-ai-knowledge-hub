@@ -1,14 +1,9 @@
 from fastapi import FastAPI
 
-app = FastAPI(
-    title="Enterprise AI Knowledge Hub",
-    version="1.0.0"
-)
+from app.db.init_db import init_db
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to Enterprise AI Knowledge Hub"}
+app = FastAPI()
 
-@app.get("/health")
-async def health():
-    return {"status": "UP"}
+@app.on_event("startup")
+def startup():
+    init_db()
