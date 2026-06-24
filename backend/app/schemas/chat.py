@@ -11,3 +11,8 @@ class ChatResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+class ChatUpdate(BaseModel):
+    title: str
