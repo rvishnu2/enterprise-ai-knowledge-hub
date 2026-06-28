@@ -1,84 +1,88 @@
-import { useEffect, useState } from "react";
+import { MessageSquarePlus, MessageCircle } from "lucide-react";
 
-import { getChats } from "../api/chatApi";
-
-
-interface SidebarProps {
-    selectedChatId: number | null;
-    onSelectChat: (
-        chatId: number
-    ) => void;
+interface Chat {
+    id: number;
+    title: string;
 }
 
+interface SidebarProps {
+    chats: Chat[];
+    selectedChatId: number | null;
+    onSelectChat: (chatId: number) => void;
+    onCreateChat: () => void;
+}
 
-function Sidebar({ selectedChatId,
-    onSelectChat
+function Sidebar({
+    chats,
+    selectedChatId,
+    onSelectChat,
+    onCreateChat
 }: SidebarProps) {
-
-    const [chats, setChats] =
-        useState<any[]>([]);
-
-    useEffect(() => {
-
-        loadChats();
-
-    }, []);
-
-    const loadChats = async () => {
-
-        try {
-
-            const data =
-                await getChats();
-
-            setChats(data);
-
-        } catch (error) {
-
-            console.error(error);
-        }
-    };
 
     return (
 
-        <div className="w-64 bg-gray-900 text-white p-4">
+        <div className="w-72 bg-zinc-950 text-white flex flex-col border-r border-zinc-800">
 
-            <button
-                className="w-full bg-gray-700 p-2 rounded"
-            >
-                + New Chat
-            </button>
+            {/* Header */}
+            <div className="p-4">
 
-            <div className="mt-4 space-y-2">
+                <button
+                    onClick={onCreateChat}
+                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 py-3 font-medium transition"
+                >
+                    <MessageSquarePlus size={18} />
+                    New Chat
+                </button>
 
-                {
-                    chats.map(
-                        (chat) => (
+            </div>
 
-                            <div
-                                key={chat.id}
-                                onClick={() =>
-                                    onSelectChat(chat.id)
-                                }
-                                className={`
-    p-2 rounded cursor-pointer
-    ${selectedChatId === chat.id
-                                        ? "bg-gray-700"
-                                        : "bg-gray-800"
-                                    }
-  `}
-                            >
+            {/* Divider */}
+
+            <div className="border-b border-zinc-800"></div>
+
+            {/* Chats */}
+
+            <div className="flex-1 overflow-y-auto p-3">
+
+                <h2 className="text-xs uppercase tracking-wider text-zinc-500 mb-3">
+                    Conversations
+                </h2>
+
+                <div className="space-y-2">
+
+                    {chats.map((chat) => (
+
+                        <div
+                            key={chat.id}
+                            onClick={() => onSelectChat(chat.id)}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-3 cursor-pointer transition-all duration-200
+                            ${
+                                selectedChatId === chat.id
+                                    ? "bg-zinc-800"
+                                    : "hover:bg-zinc-900"
+                            }`}
+                        >
+
+                            <MessageCircle
+                                size={18}
+                                className="text-zinc-400"
+                            />
+
+                            <span className="truncate flex-1">
                                 {chat.title}
-                            </div>
-                        )
-                    )
-                }
+                            </span>
+
+                        </div>
+
+                    ))}
+
+                </div>
 
             </div>
 
         </div>
+
     );
 }
 
 export default Sidebar;
-

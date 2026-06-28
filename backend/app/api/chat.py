@@ -1,6 +1,3 @@
-
-
-
 from fastapi import (
     APIRouter,
     Depends,
@@ -16,10 +13,15 @@ from app.models.user import User
 
 from app.schemas.chat import ChatCreate, ChatUpdate
 
+from app.models import chat
+
 from app.services.chat_service import ChatService
 
 from app.schemas.message import MessageCreate
+
 from app.services.message_service import MessageService
+
+from app.schemas.ask_response import AskResponse
 
 from app.repositories.message_repository import MessageRepository
 from app.services.ai_service import AIService
@@ -74,25 +76,28 @@ def create_message(
         "content": message.content
     }
 
-@router.get("/{chat_id}/messages")
-def get_messages(
-    chat_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(
-        get_current_user
-    )
-):
+# @router.get("/{chat_id}/messages")
+# def get_messages(
+#     chat_id: int,
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(
+#         get_current_user
+#     )
+# ):
 
-    messages = (
-        MessageRepository.get_by_chat(
-            db,
-            chat_id
-        )
-    )
+#     messages = (
+#         MessageRepository.get_by_chat(
+#             db,
+#             chat_id
+#         )
+#     )
 
-    return messages
+#     return messages
 
-@router.post("/{chat_id}/ask")
+@router.post(
+    "/{chat_id}/ask",
+    response_model=AskResponse
+)
 def ask_ai(
     chat_id: int,
     request: MessageCreate,
@@ -102,41 +107,43 @@ def ask_ai(
     )
 ):
 
-    MessageService.create_user_message(
-        db,
-        chat_id,
-        request.content
+    user_message = MessageService.create_user_message(
+    db,
+    chat_id,
+    request.content
     )
 
     history = MessageRepository.get_by_chat(
-        db,
-        chat_id
+    db,
+    chat_id
     )
 
-    messages = []
+    messages = [
+    {
+        "role": message.role,
+        "content": message.content
+    }
+    for message in history
+    ]
 
-    for message in history:
+    ai_response = AIService.generate_response(messages)
 
-        messages.append(
-            {
-                "role": message.role,
-                "content": message.content
-            }
-        )
-
-    ai_response = AIService.generate_response(
-        messages
+    assistant_message = MessageService.create_assistant_message(
+    db,
+    chat_id,
+    ai_response
     )
 
-    MessageService.create_assistant_message(
-        db,
-        chat_id,
-        ai_response
-    )
+    chat = ChatRepository.get_by_id(db,chat_id)
+
+    if chat.title == "New Chat":
+       chat.title = request.content[:40]
+    ChatRepository.update(db, chat)
 
     return {
-        "response": ai_response
-    }
+    "user_message": user_message,
+    "assistant_message": assistant_message,
+    "chat_title": chat.title}
 
 @router.get("")
 def get_chats(

@@ -1,46 +1,67 @@
-import { useState } from "react";
-
 import Sidebar from "../components/Sidebar";
-import ChatWindow from "../components/ChatWIndow";
+import ChatWindow from "../components/ChatWindow";
 import MessageInput from "../components/MessageInput";
+
+import { useChat } from "../hooks/useChat";
 
 function ChatPage() {
 
-  const [selectedChatId,
-    setSelectedChatId] =
-      useState<number | null>(null);
+    const {
 
-  return (
+        chats,
 
-    <div className="h-screen flex">
+        messages,
 
-      <Sidebar
-        selectedChatId={
-          selectedChatId
-        }
-        onSelectChat={
-          setSelectedChatId
-        }
-      />
+        selectedChatId,
 
-      <div className="flex flex-col flex-1">
+        isLoading,
 
-        <ChatWindow
-          chatId={
-            selectedChatId
-          }
-        />
+        setSelectedChatId,
 
-        <MessageInput
-          chatId={
-            selectedChatId
-          }
-        />
+        createNewChat,
 
-      </div>
+        sendMessage
 
-    </div>
-  );
+    } = useChat();
+
+    return (
+
+        <div className="flex h-screen bg-zinc-950">
+
+            <Sidebar
+
+                chats={chats}
+
+                selectedChatId={selectedChatId}
+
+                onSelectChat={setSelectedChatId}
+
+                onCreateChat={createNewChat}
+
+            />
+
+            <div className="flex flex-col flex-1">
+
+                <ChatWindow
+
+                    messages={messages}
+
+                    isLoading={isLoading}
+
+                />
+
+                <MessageInput
+
+                    onSend={sendMessage}
+
+                />
+
+            </div>
+
+        </div>
+
+    );
+
 }
 
 export default ChatPage;

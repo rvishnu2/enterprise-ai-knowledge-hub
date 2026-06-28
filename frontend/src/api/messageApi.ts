@@ -1,50 +1,42 @@
+import type { AskResponse } from "../types/askResponse";
 import api from "./client";
 
-export const getMessages =
-  async (
-    chatId: number
-  ) => {
-
-    const token =
-      localStorage.getItem(
-        "token"
-      );
-
-    const response =
-      await api.get(
-        `/chats/${chatId}/messages`,
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`
-          }
-        }
-      );
-
-    return response.data;
+const getToken = () => {
+  return localStorage.getItem("token");
 };
 
-export const askAI = async (
-  chatId: number,
-  content: string
+export const getMessages = async (
+  chatId: number
 ) => {
 
-  const token =
-    localStorage.getItem("token");
-
-  const response =
-    await api.post(
-      `/chats/${chatId}/ask`,
-      {
-        content
-      },
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`
-        }
+  const response = await api.get(
+    `/chats/${chatId}/messages`,
+    {
+      headers: {
+        Authorization: `Bearer ${getToken()}`
       }
-    );
+    }
+  );
+
+  return response.data;
+};
+
+export async function askAI(
+    chatId: number,
+    content: string
+): Promise<AskResponse>{
+
+  const response = await api.post(
+    `/chats/${chatId}/ask`,
+    {
+      content
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      }
+    }
+  );
 
   return response.data;
 };
